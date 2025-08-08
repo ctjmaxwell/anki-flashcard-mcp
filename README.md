@@ -1,111 +1,65 @@
 # anki-flashcard-mcp MCP server
 
-Anki flashcard mcp server
+In this project we will be creating a custom dockerised mcp-server using the mcp python library and utilising through the claude app. Although you can easily use this mcp-server using other desired LLMs.
 
-## Components
+I started the mcp server by following this boilerplate guide to building and mcp server https://github.com/modelcontextprotocol/create-python-server/tree/main
 
-### Resources
+I also was guided from to dockerise the mcp-server:
+https://github.com/RGGH/python360
 
-The server implements a simple note storage system with:
-- Custom note:// URI scheme for accessing individual notes
-- Each note resource has a name, description and text/plain mimetype
 
-### Prompts
 
-The server provides a single prompt:
-- summarize-notes: Creates summaries of all stored notes
-  - Optional "style" argument to control detail level (brief/detailed)
-  - Generates prompt combining all current notes with style preference
+Running the commands
 
-### Tools
+Using uvx (recommended)
+uvx create-mcp-server
+cd my-server
+uv sync --dev --all-extras
+uv run my-server
 
-The server implements one tool:
-- add-note: Adds a new note to the server
-  - Takes "name" and "content" as required string arguments
-  - Updates server state and notifies clients of resource changes
+Then after you follow that guide create a dockerfile
+then build the image using:
+docker build -t anki-flashcard-mcp . 
 
-## Configuration
 
-[TODO: Add configuration details specific to your implementation]
+To test the docker container on the mcp inspector do:
+npx @modelcontextprotocol/inspector docker run -i --rm --init -e DOCKER_CONTAINER=true anki-flashcard-mcp
 
-## Quickstart
+You can then test the prompts and tools to see if they return the desired output and the container runs with no errors. If errors persist rexamine the dockerfile and make changes accordingly.
 
-### Install
+When using it with the claude app, go to the settings then go to developer. It should say Local MCP servers.
 
-#### Claude Desktop
+Make sure claude desktop has access to docker. You can run the command:
+launchctl setenv PATH "$PATH"
 
-On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
-On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+Click edit config and open the claude_desktop_config.json. Then edit the json:
+{
+  "command": "docker",
+  "args": [
+    "run", "-i", "--rm", "--init",
+    "-e", "DOCKER_CONTAINER=true",
+    "anki-flashcard-mcp"
+  ]
+}
 
-<details>
-  <summary>Development/Unpublished Servers Configuration</summary>
-  ```
+If this does not work Use a wrapper shell script (workaround)
+Instead of setting "command": "docker" in Claude, set:
+{
   "mcpServers": {
     "anki-flashcard-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/Users/cademaxwell/development/projects/python/anki-flashcard-mcp",
-        "run",
-        "anki-flashcard-mcp"
-      ]
+      "command": "/Users/cademaxwell/.scripts/run-anki-docker.sh"
     }
   }
-  ```
-</details>
+}
 
-<details>
-  <summary>Published Servers Configuration</summary>
-  ```
-  "mcpServers": {
-    "anki-flashcard-mcp": {
-      "command": "uvx",
-      "args": [
-        "anki-flashcard-mcp"
-      ]
-    }
-  }
-  ```
-</details>
+Create /Users/cademaxwell/.scripts/run-anki-docker.sh:
+#!/bin/bash
+exec /usr/local/bin/docker run -i --rm --init -e DOCKER_CONTAINER=true anki-flashcard-mcp
 
-## Development
+Make it executable:
+chmod +x ~/.scripts/run-anki-docker.sh
+Replace /usr/local/bin/docker with the result of running which docker.
 
-### Building and Publishing
+This script is now a stable entry point that Claude can use, even if it doesn’t inherit your shell environment.
 
-To prepare the package for distribution:
-
-1. Sync dependencies and update lockfile:
-```bash
-uv sync
-```
-
-2. Build package distributions:
-```bash
-uv build
-```
-
-This will create source and wheel distributions in the `dist/` directory.
-
-3. Publish to PyPI:
-```bash
-uv publish
-```
-
-Note: You'll need to set PyPI credentials via environment variables or command flags:
-- Token: `--token` or `UV_PUBLISH_TOKEN`
-- Or username/password: `--username`/`UV_PUBLISH_USERNAME` and `--password`/`UV_PUBLISH_PASSWORD`
-
-### Debugging
-
-Since MCP servers run over stdio, debugging can be challenging. For the best debugging
-experience, we strongly recommend using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector).
-
-
-You can launch the MCP Inspector via [`npm`](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) with this command:
-
-```bash
-npx @modelcontextprotocol/inspector uv --directory /Users/cademaxwell/development/projects/python/anki-flashcard-mcp run anki-flashcard-mcp
-```
-
-
-Upon launching, the Inspector will display a URL that you can access in your browser to begin debugging.
+Your dockerised mcp-server should now be usuable by claude. Each time you open claude desktop a docker container for anki_flashcard_mcp image will be started.
