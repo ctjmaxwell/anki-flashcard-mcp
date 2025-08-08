@@ -1,0 +1,23 @@
+[project]
+name = "anki-flashcard-mcp"
+version = "0.1.0"
+description = "A MCP server project"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+ "mcp[cli]>=1.5.0",
+]
+[[project.authors]]
+name = "Cade Maxwell"
+email = "cademaxwell22@gmail.com"
+
+[build-system]
+requires = [ "hatchling",]
+build-backend = "hatchling.build"
+
+[project.scripts]
+anki-flashcard-mcp = "anki_flashcard_mcp.server:main"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/anki_flashcard_mcp"]
