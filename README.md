@@ -63,3 +63,6 @@ Replace /usr/local/bin/docker with the result of running which docker.
 This script is now a stable entry point that Claude can use, even if it doesn’t inherit your shell environment.
 
 Your dockerised mcp-server should now be usuable by claude. Each time you open claude desktop a docker container for anki_flashcard_mcp image will be started.
+
+Now we need to sync it to anki. AnkiConnect Prerequisites
+This code relies on the AnkiConnect add-on being installed and running within your Anki desktop application. You can install it by going to Tools > Add-ons > Get Add-ons... in Anki and entering the code 2055492159. Anki must be open for the server to work.
